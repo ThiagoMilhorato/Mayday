@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang='pt-BR'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Mayday Quiz - Aviação</title>
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 72px;
+      font-weight: bold;
+      color: #8000ff;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+    #quiz, #resultado {
+      background: #e8d8ff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 800px;
+      text-align: center;
+      display: none;
+    }
+    #pergunta {
+      font-size: 42px;
+      font-weight: bold;
+      margin-bottom: 40px;
+    }
+    #opcoes {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .btn {
+      font-size: 32px;
+      padding: 20px 40px;
+      background-color: #8000ff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 500px;
+    }
+    .btn:hover {
+      background-color: #5a00b3;
+    }
+    #progresso, #usadas {
+      font-size: 22px;
+      margin-top: 20px;
+      color: #333333;
+    }
+    #resultado h2 {
+      font-size: 48px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mayday Quiz</h1>
+
+  <audio id="musica" loop autoplay>
+    <source src="https://cdn.jsdelivr.net/gh/ThiagoMilhorato/Mayday/POR1.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="somErro" preload="auto">
+    <source src="https://thiagom.net/static/audio/mayday/errado.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="somAcerto" preload="auto">
+    <source src="https://thiagom.net/static/audio/mayday/certo.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="quiz">
+    <div id="pergunta"></div>
+    <div id="opcoes"></div>
+    <div id="progresso"></div>
+    <div id="usadas"></div>
+  </div>
+
+  <div id="resultado">
+    <h2 id="msg-resultado"></h2>
+    <button class="btn" onclick="continuar()">Próxima</button>
+  </div>
+
+  <button id="startBtn" class="btn" onclick="iniciar()">Iniciar Quiz</button>
+
+  <script>
+    let perguntas = [{"numero": 36, "pergunta": "Qual a velocidade média de cruzeiro de um Boeing 737? [36]", "correta": "850 km/h", "alternativas": ["850 km/h", "1000 km/h", "1200 km/h"]}, {"numero": 29, "pergunta": "A sigla ATC refere-se a quê? [29]", "correta": "Controle de Tráfego Aéreo", "alternativas": ["Área de Turbulência Condicionada", "Controle de Tráfego Aéreo", "Altitude Total Calculada"]}, {"numero": 96, "pergunta": "Qual a velocidade média de cruzeiro de um Boeing 737? [96]", "correta": "850 km/h", "alternativas": ["1200 km/h", "600 km/h", "1000 km/h"]}, {"numero": 4, "pergunta": "Qual o significado da sigla VOR? [4]", "correta": "VHF Omnidirectional Range", "alternativas": ["Visual de Orientação Rápida", "Velocidade Operacional Recomendada", "Voo Operacional Regional"]}, {"numero": 70, "pergunta": "Qual o nome do maior avião do mundo em comprimento? [70]", "correta": "Antonov An-225 Mriya", "alternativas": ["Lockheed C-5 Galaxy", "Boeing 747", "Antonov An-225 Mriya"]}, {"numero": 30, "pergunta": "Qual o nome do maior avião do mundo em comprimento? [30]", "correta": "Antonov An-225 Mriya", "alternativas": ["Airbus A380", "Boeing 747", "Lockheed C-5 Galaxy"]}, {"numero": 6, "pergunta": "Qual o tipo de motor usado em jatos comerciais? [6]", "correta": "Turbofan", "alternativas": ["Motor a pistão", "Turboprop", "Turbofan"]}, {"numero": 83, "pergunta": "Para que serve o sistema Pitot? [83]", "correta": "Medir a velocidade do ar", "alternativas": ["Determinar altitude de pressão", "Controlar o flap", "Medir a velocidade do ar"]}, {"numero": 51, "pergunta": "Qual país possui a maior frota aérea comercial? [51]", "correta": "Estados Unidos", "alternativas": ["Estados Unidos", "Rússia", "Brasil"]}, {"numero": 85, "pergunta": "O que é a camada de tropopausa? [85]", "correta": "Divisão entre troposfera e estratosfera", "alternativas": ["Divisão entre troposfera e estratosfera", "Camada mais quente da atmosfera", "Área de voo visual"]}, {"numero": 18, "pergunta": "Qual o nome do primeiro avião a jato comercial? [18]", "correta": "De Havilland Comet", "alternativas": ["Douglas DC-8", "Boeing 707", "Lockheed Constellation"]}, {"numero": 25, "pergunta": "O que é a camada de tropopausa? [25]", "correta": "Divisão entre troposfera e estratosfera", "alternativas": ["Camada mais quente da atmosfera", "Área de voo visual", "Região de máxima turbulência"]}, {"numero": 74, "pergunta": "Qual o combustível padrão da aviação comercial? [74]", "correta": "Querosene de aviação (Jet A-1)", "alternativas": ["Etanol", "Diesel", "Querosene de aviação (Jet A-1)"]}, {"numero": 21, "pergunta": "O que é velocidade indicada (IAS)? [21]", "correta": "Velocidade lida diretamente no indicador de velocidade", "alternativas": ["Velocidade corrigida por vento", "Velocidade real corrigida pela densidade do ar", "Velocidade lida diretamente no indicador de velocidade"]}, {"numero": 15, "pergunta": "Qual a altitude de cruzeiro típica de um avião comercial? [15]", "correta": "Entre 30.000 e 40.000 pés", "alternativas": ["5.000 a 10.000 pés", "50.000 a 60.000 pés", "10.000 a 20.000 pés"]}, {"numero": 53, "pergunta": "Quantos motores possui um Airbus A320? [53]", "correta": "Dois", "alternativas": ["Seis", "Dois", "Quatro"]}, {"numero": 97, "pergunta": "Qual a função das aletas na cauda do avião? [97]", "correta": "Controle de estabilidade e direção", "alternativas": ["Aumentar velocidade", "Reduzir peso", "Controle de estabilidade e direção"]}, {"numero": 32, "pergunta": "Quem é considerado o 'pai da aviação' no Brasil? [32]", "correta": "Alberto Santos Dumont", "alternativas": ["Alberto Santos Dumont", "Bartolomeu de Gusmão", "Irmãos Wright"]}, {"numero": 49, "pergunta": "A sigla ATC refere-se a quê? [49]", "correta": "Controle de Tráfego Aéreo", "alternativas": ["Altitude Total Calculada", "Área de Turbulência Condicionada", "Aeroporto Técnico Central"]}, {"numero": 20, "pergunta": "O que significa a sigla ICAO? [20]", "correta": "Organização da Aviação Civil Internacional", "alternativas": ["Instituto de Controle Aeroportuário Operacional", "Instituição de Coordenação Aeroespacial", "Centro Internacional de Aviação Oficial"]}, {"numero": 45, "pergunta": "O que é a camada de tropopausa? [45]", "correta": "Divisão entre troposfera e estratosfera", "alternativas": ["Camada mais quente da atmosfera", "Região de máxima turbulência", "Área de voo visual"]}, {"numero": 73, "pergunta": "Quantos motores possui um Airbus A320? [73]", "correta": "Dois", "alternativas": ["Quatro", "Dois", "Seis"]}, {"numero": 77, "pergunta": "Qual a função das aletas na cauda do avião? [77]", "correta": "Controle de estabilidade e direção", "alternativas": ["Gerar empuxo", "Controle de estabilidade e direção", "Aumentar velocidade"]}, {"numero": 34, "pergunta": "Qual o combustível padrão da aviação comercial? [34]", "correta": "Querosene de aviação (Jet A-1)", "alternativas": ["Diesel", "Querosene de aviação (Jet A-1)", "Gasolina comum"]}, {"numero": 31, "pergunta": "Qual país possui a maior frota aérea comercial? [31]", "correta": "Estados Unidos", "alternativas": ["Estados Unidos", "Brasil", "China"]}, {"numero": 40, "pergunta": "O que significa a sigla ICAO? [40]", "correta": "Organização da Aviação Civil Internacional", "alternativas": ["Instituto de Controle Aeroportuário Operacional", "Centro Internacional de Aviação Oficial", "Organização da Aviação Civil Internacional"]}, {"numero": 76, "pergunta": "Qual a velocidade média de cruzeiro de um Boeing 737? [76]", "correta": "850 km/h", "alternativas": ["600 km/h", "850 km/h", "1200 km/h"]}, {"numero": 16, "pergunta": "Qual a velocidade média de cruzeiro de um Boeing 737? [16]", "correta": "850 km/h", "alternativas": ["850 km/h", "1000 km/h", "600 km/h"]}, {"numero": 56, "pergunta": "Qual a velocidade média de cruzeiro de um Boeing 737? [56]", "correta": "850 km/h", "alternativas": ["600 km/h", "1200 km/h", "850 km/h"]}, {"numero": 57, "pergunta": "Qual a função das aletas na cauda do avião? [57]", "correta": "Controle de estabilidade e direção", "alternativas": ["Reduzir peso", "Aumentar velocidade", "Controle de estabilidade e direção"]}, {"numero": 8, "pergunta": "O que é estol? [8]", "correta": "Perda de sustentação por ângulo de ataque excessivo", "alternativas": ["Perda de sustentação por ângulo de ataque excessivo", "Explosão de motor", "Falha elétrica completa"]}, {"numero": 50, "pergunta": "Qual o nome do maior avião do mundo em comprimento? [50]", "correta": "Antonov An-225 Mriya", "alternativas": ["Lockheed C-5 Galaxy", "Airbus A380", "Boeing 747"]}, {"numero": 59, "pergunta": "Qual cidade brasileira abriga o Museu TAM? [59]", "correta": "São Carlos", "alternativas": ["São José dos Campos", "Campinas", "São Carlos"]}, {"numero": 61, "pergunta": "O que é velocidade indicada (IAS)? [61]", "correta": "Velocidade lida diretamente no indicador de velocidade", "alternativas": ["Velocidade ao nível do mar", "Velocidade real corrigida pela densidade do ar", "Velocidade corrigida por vento"]}, {"numero": 65, "pergunta": "O que é a camada de tropopausa? [65]", "correta": "Divisão entre troposfera e estratosfera", "alternativas": ["Área de voo visual", "Região de máxima turbulência", "Camada mais quente da atmosfera"]}, {"numero": 13, "pergunta": "Quantos motores possui um Airbus A320? [13]", "correta": "Dois", "alternativas": ["Três", "Quatro", "Dois"]}, {"numero": 48, "pergunta": "O que é estol? [48]", "correta": "Perda de sustentação por ângulo de ataque excessivo", "alternativas": ["Perda de pressão na cabine", "Falha elétrica completa", "Explosão de motor"]}, {"numero": 10, "pergunta": "Qual o nome do maior avião do mundo em comprimento? [10]", "correta": "Antonov An-225 Mriya", "alternativas": ["Airbus A380", "Antonov An-225 Mriya", "Lockheed C-5 Galaxy"]}, {"numero": 44, "pergunta": "Qual o significado da sigla VOR? [44]", "correta": "VHF Omnidirectional Range", "alternativas": ["Visual de Orientação Rápida", "Velocidade Operacional Recomendada", "Voo Operacional Regional"]}, {"numero": 98, "pergunta": "Qual o nome do primeiro avião a jato comercial? [98]", "correta": "De Havilland Comet", "alternativas": ["De Havilland Comet", "Boeing 707", "Lockheed Constellation"]}, {"numero": 80, "pergunta": "O que significa a sigla ICAO? [80]", "correta": "Organização da Aviação Civil Internacional", "alternativas": ["Instituição de Coordenação Aeroespacial", "Centro Internacional de Aviação Oficial", "Instituto de Controle Aeroportuário Operacional"]}, {"numero": 55, "pergunta": "Qual a altitude de cruzeiro típica de um avião comercial? [55]", "correta": "Entre 30.000 e 40.000 pés", "alternativas": ["50.000 a 60.000 pés", "Entre 30.000 e 40.000 pés", "5.000 a 10.000 pés"]}, {"numero": 87, "pergunta": "Qual o instrumento usado para medir altitude? [87]", "correta": "Altímetro", "alternativas": ["Girômetro", "Altímetro", "Velocímetro"]}, {"numero": 67, "pergunta": "Qual o instrumento usado para medir altitude? [67]", "correta": "Altímetro", "alternativas": ["Girômetro", "Velocímetro", "Horizonte artificial"]}, {"numero": 93, "pergunta": "Quantos motores possui um Airbus A320? [93]", "correta": "Dois", "alternativas": ["Seis", "Quatro", "Três"]}, {"numero": 71, "pergunta": "Qual país possui a maior frota aérea comercial? [71]", "correta": "Estados Unidos", "alternativas": ["Rússia", "China", "Brasil"]}, {"numero": 92, "pergunta": "Quem é considerado o 'pai da aviação' no Brasil? [92]", "correta": "Alberto Santos Dumont", "alternativas": ["Otto Lilienthal", "Irmãos Wright", "Bartolomeu de Gusmão"]}, {"numero": 99, "pergunta": "Qual cidade brasileira abriga o Museu TAM? [99]", "correta": "São Carlos", "alternativas": ["São Carlos", "Rio de Janeiro", "Campinas"]}, {"numero": 19, "pergunta": "Qual cidade brasileira abriga o Museu TAM? [19]", "correta": "São Carlos", "alternativas": ["Rio de Janeiro", "São José dos Campos", "São Carlos"]}, {"numero": 39, "pergunta": "Qual cidade brasileira abriga o Museu TAM? [39]", "correta": "São Carlos", "alternativas": ["São José dos Campos", "Rio de Janeiro", "São Carlos"]}, {"numero": 82, "pergunta": "O que representa o código 7700 em um transponder? [82]", "correta": "Emergência geral", "alternativas": ["Falha de comunicação", "Autorização de pouso", "Emergência geral"]}, {"numero": 54, "pergunta": "Qual o combustível padrão da aviação comercial? [54]", "correta": "Querosene de aviação (Jet A-1)", "alternativas": ["Querosene de aviação (Jet A-1)", "Gasolina comum", "Etanol"]}, {"numero": 41, "pergunta": "O que é velocidade indicada (IAS)? [41]", "correta": "Velocidade lida diretamente no indicador de velocidade", "alternativas": ["Velocidade corrigida por vento", "Velocidade lida diretamente no indicador de velocidade", "Velocidade real corrigida pela densidade do ar"]}, {"numero": 62, "pergunta": "O que representa o código 7700 em um transponder? [62]", "correta": "Emergência geral", "alternativas": ["Autorização de pouso", "Interferência ilícita", "Falha de comunicação"]}, {"numero": 2, "pergunta": "O que representa o código 7700 em um transponder? [2]", "correta": "Emergência geral", "alternativas": ["Autorização de pouso", "Falha de comunicação", "Emergência geral"]}, {"numero": 23, "pergunta": "Para que serve o sistema Pitot? [23]", "correta": "Medir a velocidade do ar", "alternativas": ["Medir a velocidade do ar", "Detectar turbulência", "Determinar altitude de pressão"]}, {"numero": 24, "pergunta": "Qual o significado da sigla VOR? [24]", "correta": "VHF Omnidirectional Range", "alternativas": ["Visual de Orientação Rápida", "VHF Omnidirectional Range", "Velocidade Operacional Recomendada"]}, {"numero": 64, "pergunta": "Qual o significado da sigla VOR? [64]", "correta": "VHF Omnidirectional Range", "alternativas": ["VHF Omnidirectional Range", "Velocidade Operacional Recomendada", "Voo Operacional Regional"]}, {"numero": 52, "pergunta": "Quem é considerado o 'pai da aviação' no Brasil? [52]", "correta": "Alberto Santos Dumont", "alternativas": ["Bartolomeu de Gusmão", "Alberto Santos Dumont", "Irmãos Wright"]}, {"numero": 86, "pergunta": "Qual o tipo de motor usado em jatos comerciais? [86]", "correta": "Turbofan", "alternativas": ["Turbofan", "Turboprop", "Motor a pistão"]}, {"numero": 46, "pergunta": "Qual o tipo de motor usado em jatos comerciais? [46]", "correta": "Turbofan", "alternativas": ["Motor a pistão", "Ramjet", "Turboprop"]}, {"numero": 17, "pergunta": "Qual a função das aletas na cauda do avião? [17]", "correta": "Controle de estabilidade e direção", "alternativas": ["Gerar empuxo", "Reduzir peso", "Aumentar velocidade"]}, {"numero": 11, "pergunta": "Qual país possui a maior frota aérea comercial? [11]", "correta": "Estados Unidos", "alternativas": ["Estados Unidos", "Rússia", "Brasil"]}, {"numero": 63, "pergunta": "Para que serve o sistema Pitot? [63]", "correta": "Medir a velocidade do ar", "alternativas": ["Detectar turbulência", "Controlar o flap", "Medir a velocidade do ar"]}, {"numero": 9, "pergunta": "A sigla ATC refere-se a quê? [9]", "correta": "Controle de Tráfego Aéreo", "alternativas": ["Aeroporto Técnico Central", "Área de Turbulência Condicionada", "Altitude Total Calculada"]}, {"numero": 69, "pergunta": "A sigla ATC refere-se a quê? [69]", "correta": "Controle de Tráfego Aéreo", "alternativas": ["Controle de Tráfego Aéreo", "Área de Turbulência Condicionada", "Altitude Total Calculada"]}, {"numero": 60, "pergunta": "O que significa a sigla ICAO? [60]", "correta": "Organização da Aviação Civil Internacional", "alternativas": ["Instituto de Controle Aeroportuário Operacional", "Instituição de Coordenação Aeroespacial", "Organização da Aviação Civil Internacional"]}, {"numero": 12, "pergunta": "Quem é considerado o 'pai da aviação' no Brasil? [12]", "correta": "Alberto Santos Dumont", "alternativas": ["Otto Lilienthal", "Bartolomeu de Gusmão", "Alberto Santos Dumont"]}, {"numero": 66, "pergunta": "Qual o tipo de motor usado em jatos comerciais? [66]", "correta": "Turbofan", "alternativas": ["Motor a pistão", "Ramjet", "Turboprop"]}, {"numero": 27, "pergunta": "Qual o instrumento usado para medir altitude? [27]", "correta": "Altímetro", "alternativas": ["Velocímetro", "Altímetro", "Horizonte artificial"]}, {"numero": 28, "pergunta": "O que é estol? [28]", "correta": "Perda de sustentação por ângulo de ataque excessivo", "alternativas": ["Perda de sustentação por ângulo de ataque excessivo", "Falha elétrica completa", "Perda de pressão na cabine"]}, {"numero": 91, "pergunta": "Qual país possui a maior frota aérea comercial? [91]", "correta": "Estados Unidos", "alternativas": ["Rússia", "China", "Estados Unidos"]}, {"numero": 78, "pergunta": "Qual o nome do primeiro avião a jato comercial? [78]", "correta": "De Havilland Comet", "alternativas": ["De Havilland Comet", "Lockheed Constellation", "Boeing 707"]}, {"numero": 14, "pergunta": "Qual o combustível padrão da aviação comercial? [14]", "correta": "Querosene de aviação (Jet A-1)", "alternativas": ["Querosene de aviação (Jet A-1)", "Diesel", "Gasolina comum"]}, {"numero": 90, "pergunta": "Qual o nome do maior avião do mundo em comprimento? [90]", "correta": "Antonov An-225 Mriya", "alternativas": ["Boeing 747", "Airbus A380", "Antonov An-225 Mriya"]}, {"numero": 89, "pergunta": "A sigla ATC refere-se a quê? [89]", "correta": "Controle de Tráfego Aéreo", "alternativas": ["Área de Turbulência Condicionada", "Controle de Tráfego Aéreo", "Aeroporto Técnico Central"]}, {"numero": 3, "pergunta": "Para que serve o sistema Pitot? [3]", "correta": "Medir a velocidade do ar", "alternativas": ["Detectar turbulência", "Medir a velocidade do ar", "Controlar o flap"]}, {"numero": 58, "pergunta": "Qual o nome do primeiro avião a jato comercial? [58]", "correta": "De Havilland Comet", "alternativas": ["Lockheed Constellation", "Boeing 707", "De Havilland Comet"]}, {"numero": 33, "pergunta": "Quantos motores possui um Airbus A320? [33]", "correta": "Dois", "alternativas": ["Dois", "Três", "Seis"]}, {"numero": 79, "pergunta": "Qual cidade brasileira abriga o Museu TAM? [79]", "correta": "São Carlos", "alternativas": ["São José dos Campos", "Rio de Janeiro", "Campinas"]}, {"numero": 43, "pergunta": "Para que serve o sistema Pitot? [43]", "correta": "Medir a velocidade do ar", "alternativas": ["Detectar turbulência", "Medir a velocidade do ar", "Determinar altitude de pressão"]}, {"numero": 75, "pergunta": "Qual a altitude de cruzeiro típica de um avião comercial? [75]", "correta": "Entre 30.000 e 40.000 pés", "alternativas": ["10.000 a 20.000 pés", "Entre 30.000 e 40.000 pés", "5.000 a 10.000 pés"]}, {"numero": 68, "pergunta": "O que é estol? [68]", "correta": "Perda de sustentação por ângulo de ataque excessivo", "alternativas": ["Falha elétrica completa", "Explosão de motor", "Perda de pressão na cabine"]}, {"numero": 38, "pergunta": "Qual o nome do primeiro avião a jato comercial? [38]", "correta": "De Havilland Comet", "alternativas": ["Boeing 707", "De Havilland Comet", "Douglas DC-8"]}, {"numero": 5, "pergunta": "O que é a camada de tropopausa? [5]", "correta": "Divisão entre troposfera e estratosfera", "alternativas": ["Camada mais quente da atmosfera", "Divisão entre troposfera e estratosfera", "Região de máxima turbulência"]}, {"numero": 35, "pergunta": "Qual a altitude de cruzeiro típica de um avião comercial? [35]", "correta": "Entre 30.000 e 40.000 pés", "alternativas": ["50.000 a 60.000 pés", "10.000 a 20.000 pés", "Entre 30.000 e 40.000 pés"]}, {"numero": 22, "pergunta": "O que representa o código 7700 em um transponder? [22]", "correta": "Emergência geral", "alternativas": ["Autorização de pouso", "Emergência geral", "Interferência ilícita"]}, {"numero": 26, "pergunta": "Qual o tipo de motor usado em jatos comerciais? [26]", "correta": "Turbofan", "alternativas": ["Motor a pistão", "Turboprop", "Turbofan"]}, {"numero": 1, "pergunta": "O que é velocidade indicada (IAS)? [1]", "correta": "Velocidade lida diretamente no indicador de velocidade", "alternativas": ["Velocidade ao nível do mar", "Velocidade corrigida por vento", "Velocidade lida diretamente no indicador de velocidade"]}, {"numero": 37, "pergunta": "Qual a função das aletas na cauda do avião? [37]", "correta": "Controle de estabilidade e direção", "alternativas": ["Aumentar velocidade", "Gerar empuxo", "Controle de estabilidade e direção"]}, {"numero": 100, "pergunta": "O que significa a sigla ICAO? [100]", "correta": "Organização da Aviação Civil Internacional", "alternativas": ["Centro Internacional de Aviação Oficial", "Instituto de Controle Aeroportuário Operacional", "Organização da Aviação Civil Internacional"]}, {"numero": 84, "pergunta": "Qual o significado da sigla VOR? [84]", "correta": "VHF Omnidirectional Range", "alternativas": ["Visual de Orientação Rápida", "Voo Operacional Regional", "Velocidade Operacional Recomendada"]}, {"numero": 7, "pergunta": "Qual o instrumento usado para medir altitude? [7]", "correta": "Altímetro", "alternativas": ["Horizonte artificial", "Velocímetro", "Altímetro"]}, {"numero": 95, "pergunta": "Qual a altitude de cruzeiro típica de um avião comercial? [95]", "correta": "Entre 30.000 e 40.000 pés", "alternativas": ["Entre 30.000 e 40.000 pés", "10.000 a 20.000 pés", "50.000 a 60.000 pés"]}, {"numero": 94, "pergunta": "Qual o combustível padrão da aviação comercial? [94]", "correta": "Querosene de aviação (Jet A-1)", "alternativas": ["Gasolina comum", "Etanol", "Diesel"]}, {"numero": 42, "pergunta": "O que representa o código 7700 em um transponder? [42]", "correta": "Emergência geral", "alternativas": ["Interferência ilícita", "Autorização de pouso", "Emergência geral"]}, {"numero": 72, "pergunta": "Quem é considerado o 'pai da aviação' no Brasil? [72]", "correta": "Alberto Santos Dumont", "alternativas": ["Alberto Santos Dumont", "Otto Lilienthal", "Bartolomeu de Gusmão"]}, {"numero": 81, "pergunta": "O que é velocidade indicada (IAS)? [81]", "correta": "Velocidade lida diretamente no indicador de velocidade", "alternativas": ["Velocidade ao nível do mar", "Velocidade real corrigida pela densidade do ar", "Velocidade lida diretamente no indicador de velocidade"]}, {"numero": 47, "pergunta": "Qual o instrumento usado para medir altitude? [47]", "correta": "Altímetro", "alternativas": ["Altímetro", "Horizonte artificial", "Velocímetro"]}, {"numero": 88, "pergunta": "O que é estol? [88]", "correta": "Perda de sustentação por ângulo de ataque excessivo", "alternativas": ["Perda de sustentação por ângulo de ataque excessivo", "Explosão de motor", "Falha elétrica completa"]}];
+    perguntas = perguntas.sort(() => Math.random() - 0.5);
+    let index = 0;
+    let usadas = [];
+
+    
+function iniciar() {
+  const musica = document.getElementById('musica');
+  const somErro = document.getElementById('somErro');
+  const somAcerto = document.getElementById('somAcerto');
+  musica.volume = 0.4;
+  somErro.load();
+  somAcerto.load();
+  musica.load();
+  musica.play().catch(()=>{});
+
+      document.getElementById('musica').play().catch(()=>{});
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('quiz').style.display = 'block';
+      mostrarPergunta();
+    }
+
+    function mostrarPergunta() {
+      if (index >= perguntas.length) {
+        document.getElementById('quiz').innerHTML = '<h2>Fim do Quiz!</h2>';
+        document.getElementById('resultado').style.display = 'none';
+        return;
+      }
+      const atual = perguntas[index];
+      usadas.push(atual.numero);
+      document.getElementById('pergunta').textContent = atual.numero + '. ' + atual.pergunta;
+      document.getElementById('opcoes').innerHTML = '';
+      document.getElementById('progresso').textContent = 'Pergunta ' + (index + 1) + ' de ' + perguntas.length;
+      document.getElementById('usadas').textContent = 'Já feitas: ' + usadas.join(', ');
+
+      atual.alternativas.forEach(op => {
+        const btn = document.createElement('button');
+        btn.textContent = op;
+        btn.className = 'btn';
+        btn.onclick = () => verificarResposta(op === atual.correta);
+        document.getElementById('opcoes').appendChild(btn);
+      });
+    }
+
+    function verificarResposta(correto) {
+      document.getElementById('quiz').style.display = 'none';
+      document.getElementById('resultado').style.display = 'block';
+      const msg = correto ? "Resposta Correta!" : "Resposta Errada!";
+      document.getElementById('msg-resultado').textContent = msg;
+      const som = correto ? document.getElementById('somAcerto') : document.getElementById('somErro');
+      som.currentTime = 0;
+      
+document.getElementById('musica').pause();
+som.play().catch(()=>{}).then(() => {
+  setTimeout(() => document.getElementById('musica').play().catch(()=>{}), 1000);
+});
+
+    }
+
+    function continuar() {
+      index++;
+      document.getElementById('resultado').style.display = 'none';
+      document.getElementById('quiz').style.display = 'block';
+      mostrarPergunta();
+    }
+  </script>
+</body>
+</html>
